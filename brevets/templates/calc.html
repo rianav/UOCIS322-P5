@@ -187,8 +187,10 @@
                 var close_list = new Array();
                 $('input[name="km"]').each(
                   function(index, km) {
-                    if (km.value != "")
-                      km_list.push(km.value);
+                    //if (km.value != "")
+                    //  km_list.push(km.value);
+                    if ($(km).find("input[name='km']").val() != "")
+                      km_list.push($(km).find("input[name='km']").val())
                   }
                 );
                 $('input[name="open"]').each(
