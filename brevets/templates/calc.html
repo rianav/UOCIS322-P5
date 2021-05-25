@@ -66,10 +66,12 @@
                   <label>Begins at</label>
                   <input type="datetime-local" name="begin_date" id="begin_date" value="2021-01-01T00:00" />
                </div>
-               <div class="col-md-4">
-                 <button id="submit">Submit</button>
-                 <button id="submit">Display</button>
-               </div>
+	       <!-- added submit and display buttons-->
+	       <div class="col-md-4">
+		       <button id="submit">Submit</button>
+		       <button id="display">Display</button>
+	       </div>
+	       <div id="submit_msg"></div>
                <!-- columns 5 to 10 -->
             </div>
             <!-- row -->
@@ -118,8 +120,6 @@
          <script type="text/javascript">
             var SCRIPT_ROOT = {{ request.script_root|tojson|safe }} ;
             var TIME_CALC_URL = SCRIPT_ROOT + "/_calc_times";
-            // new URL for submit button
-            var SUBMIT_URL = SCRIPT_ROOT + "/insert";
 
             // FIX ME!
             // Right now, only the kilometers are passed
@@ -178,41 +178,56 @@
                        // Then calculate times for this entry
                        calc_times(control_entry);
                     });
-               });
-            $('#submit').click(
-              function(e) {
-                e.preventDefault();
-                var km_list = new Array();
-                var open_list = new Array();
-                var close_list = new Array();
-                $('input[name="km"]').each(
-                  function(index, km) {
-                    //if (km.value != "")
-                    //  km_list.push(km.value);
-                    if ($(km).find("input[name='km']").val() != "")
-                      km_list.push($(km).find("input[name='km']").val())
-                  }
-                );
-                $('input[name="open"]').each(
-                  function(index, open) {
-                    // only append to list if filled out
-                    if (open.value != "")
-                      open_list.push(open.value);
-                  }
-                );
-                $('input[name="close"]').each(
-                  function(index, close) {
-                    if (close.value != "")
-                      close_list.push(close.value);
-                  }
-                );
-                console.log(km_list);
-                console.log(open_list);
-                console.log(close_list);
-                $.getJSON(SUBMIT_URL, {km_list: km_list, open_list: open_list,
-                close_list: close_list});
-              }
-            );
+
+               
+	        $('#submit').click(
+	      	    function(e) {
+		       e.preventDefault();
+		       var info = [];
+		       var entry = {};
+	               $('.control').each(
+			       function(index, obj) {
+				       if ($(obj).find("input[name='km']").val() != "") {
+					   entry = {};
+					   entry.miles = $(obj).find("input[name='miles']").val();
+					   entry.km = $(obj).find("input[name='km']").val();
+					   entry.loc = $(obj).find("input[name='location']").val();
+					   entry.open = $(obj).find("input[name='open']").val();
+					   entry.close = $(obj).find("input[name='close']").val();
+					   info.push(entry);
+		
+					   $(obj).find("input[name='miles']").val("");
+					   $(obj).find("input[name='km']").val("");
+					   $(obj).find("input[name='location']").val("");
+					   $(obj).find("input[name='open']").val("");
+					   $(obj).find("input[name='close']").val("");
+					   
+				       }
+			       }
+		       );
+		       // {km: kmval, open: openval, close: closeval}
+		       // [entrydict, entrydict, entrydict]
+		       if (info.length != 0) {
+			       $.post('/insert/', {info: JSON.stringify(info)},
+			       function(msg) {
+                                       console.log("INSERT SUCCESS");
+				       $("#submit_msg").html(msg);
+
+                               }, "json");
+		       }
+		       else {
+			       $("#submit_msg").html("You need to enter some values first!");
+		       }
+		    }
+   	         ); 
+   	         $('#display').click(
+		    function(e) {
+			 e.preventDefault();
+		  	 console.log("DISPLAY SUCCESS");
+		         window.location.href = '/display/';
+		     }
+                 );
+	 });
          </script>
       </div>
    </body>

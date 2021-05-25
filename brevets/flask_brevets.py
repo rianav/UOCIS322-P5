@@ -11,7 +11,7 @@ import arrow  # Replacement for datetime, based on moment.js
 import acp_times  # Brevet time calculations
 import config
 from pymongo import MongoClient
-
+from json import loads
 import logging
 
 ###
@@ -39,6 +39,8 @@ def index():
 def page_not_found(error):
     app.logger.debug("Page not found")
     return flask.render_template('404.html'), 404
+
+
 
 
 ###############
@@ -72,15 +74,23 @@ def _calc_times():
     result = {"open": open_time, "close": close_time}
     return flask.jsonify(result=result)
 
-@app.route('/insert/')
+@app.route('/insert/', methods=['POST'])
 def insert():
-    km_list = request.args.get("km_list", type=list)
-    open_list = request.args.get("open_list", type=list)
-    close_list = request.args.get("close_list", type=list)
-    data = {"km": km_list, "open": open_list, "close": close_list}
-    database.tododb.insert_one(data)
-    app.logger.debug(data)
-    return redirect(url_for('index'))
+    # delete contents of database
+    # get data as a list
+    data = loads(request.form.get("info"))
+    # insert each dict into database
+    database.tododb.drop()
+    for item in data:
+        database.tododb.insert_one(item);
+        app.logger.debug(item)
+    # redirect to initial page
+    return flask.jsonify("Your data has been submitted!")
+
+@app.route('/display/')
+def display():
+    app.logger.debug("DISPLAY CALLED")
+    return render_template('display.html', items=list(database.tododb.find()))
 #############
 
 app.debug = CONFIG.DEBUG

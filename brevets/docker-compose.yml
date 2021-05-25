@@ -3,9 +3,9 @@ version: '3'
 services:
     web:
         build: .
-        command: python -u app.py
+        command: python -u flask_brevets.py
         ports:
-            - "5000:5000"
+            - "1999:5000"
         depends_on:
             - ourdb
         environment:
